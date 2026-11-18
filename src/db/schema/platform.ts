@@ -33,7 +33,10 @@ export const users = pgTable(
     email: text("email").notNull(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text("image"),
+    /** E.164 só dígitos ("5511999990000"). */
     phone: varchar("phone", { length: 20 }),
+    /** Consentimento para lembretes por WhatsApp (LGPD). Nulo = não aceitou ou desistiu. */
+    whatsappOptInAt: timestamp("whatsapp_opt_in_at", { withTimezone: true }),
     platformRole: platformRoleEnum("platform_role"),
     ...timestamps,
   },

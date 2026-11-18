@@ -287,7 +287,13 @@ describe("novo agendamento no painel e bloqueios", () => {
     const [p] = await withTenant(db, T.tenantId, (tx) =>
       tx.select().from(s.customerProfiles).where(eq(s.customerProfiles.id, b.customerProfileId)),
     );
-    expect(p).toMatchObject({ name: "Seu Zé", phone: "11999990000", userId: null });
+    // Telefone gravado normalizado (E.164), sem aceite de WhatsApp marcado.
+    expect(p).toMatchObject({
+      name: "Seu Zé",
+      phone: "5511999990000",
+      userId: null,
+      whatsappOptInAt: null,
+    });
   });
 
   it("STAFF só agenda na própria coluna; horário ocupado é recusado", async () => {

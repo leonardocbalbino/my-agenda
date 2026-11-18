@@ -9,5 +9,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     css: false,
+    // Domínio fixo para os links gerados nos testes (o .env não é carregado aqui).
+    env: { NEXT_PUBLIC_ROOT_DOMAIN: "marcai.test" },
   },
 });

@@ -22,6 +22,7 @@ const bk = (
   endMin,
   priceCents: 4500,
   prepaidCents: 0,
+  customerConfirmed: false,
   ...extra,
 });
 

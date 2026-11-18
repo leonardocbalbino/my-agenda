@@ -127,3 +127,20 @@ Em dev, o domínio raiz é `marcai.localhost:3000` (`*.localhost` resolve sozinh
 - Regras em `src/modules/booking/panel.ts` e `src/modules/catalog/admin.ts`: toda ação
   revalida o papel. STAFF só mexe na própria coluna; só o dono adiciona/remove dono; o negócio
   nunca fica sem dono.
+
+## Confirmação e lembretes (WhatsApp / e-mail)
+
+- O worker (`pnpm worker`) procura a cada minuto o que está devido em todos os tenants
+  (`due_notifications()`): **confirmação** logo após confirmar ou remarcar, **lembrete 24h** e
+  **lembrete 2h** antes. Cada envio é registrado em `notification_log` com chave única
+  (reserva, tipo, horário): nada sai em dobro, mesmo com vários workers.
+- **Consentimento (LGPD):** WhatsApp só para quem aceitou: o cliente na página do agendamento ou
+  o atendente no agendamento de balcão (com o cliente). Responder **PARAR** desliga. Sem WhatsApp
+  (ou se falhar), vai por e-mail.
+- **Templates na Meta** (categoria Utilidade, `pt_BR`), parâmetros nesta ordem:
+  - `marcai_confirmacao`: `Olá, {{1}}! Seu horário em {{2}} está confirmado: {{3}} com {{4}}, {{5}}.`
+  - `marcai_lembrete`: `Olá, {{1}}! Lembrete: {{5}} você tem {{3}} com {{4}} em {{2}}.` com dois
+    botões de resposta rápida: "Confirmo presença" e "Preciso remarcar".
+- **Webhook:** `https://<raiz>/api/webhooks/whatsapp` (assinatura `X-Hub-Signature-256` obrigatória,
+  idempotente por mensagem). "Confirmo presença" marca a reserva (o painel mostra); "Preciso
+  remarcar" responde com o link da reserva.

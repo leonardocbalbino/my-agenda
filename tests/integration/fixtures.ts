@@ -165,6 +165,14 @@ export async function createTenantFixture(
       platformFeeCents: 2400,
     });
     await tx.insert(s.subscriptions).values({ tenantId, planId: plan.id, provider: "asaas" });
+    await tx.insert(s.notificationLog).values({
+      tenantId,
+      bookingId: booking.id,
+      kind: "CONFIRMATION",
+      bookingStart: booking.period.start,
+      status: "SENT",
+      channel: "EMAIL",
+    });
 
     return {
       tenantId,

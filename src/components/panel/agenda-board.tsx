@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, X } from "lucide-react";
+import { CheckCheck, Lock, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, type PointerEvent } from "react";
 import { Button, StatusBadge } from "@/components/ui";
@@ -33,6 +33,8 @@ export interface BoardBooking {
   endMin: number;
   priceLabel: string;
   fromMarketplace: boolean;
+  /** Cliente confirmou presença pelo WhatsApp. */
+  customerConfirmed: boolean;
 }
 
 export interface BoardBlock {
@@ -346,7 +348,7 @@ export function AgendaBoard({
                       if (e.defaultPrevented) return;
                       setSelected(b);
                     }}
-                    aria-label={`${b.customerName}, ${b.offeringName}, ${hhmm(startMin)} às ${hhmm(startMin + duration)}, ${BOOKING_STATUS_LABEL[b.status]}`}
+                    aria-label={`${b.customerName}, ${b.offeringName}, ${hhmm(startMin)} às ${hhmm(startMin + duration)}, ${BOOKING_STATUS_LABEL[b.status]}${b.customerConfirmed ? ", presença confirmada" : ""}`}
                     className={cn(
                       "absolute inset-x-1 z-10 flex touch-none flex-col overflow-hidden rounded-control px-2 py-1.5 text-left select-none",
                       STATUS_CLASS[b.status],
@@ -359,6 +361,13 @@ export function AgendaBoard({
                       height: Math.max(22, duration * PX - 2),
                     }}
                   >
+                    {b.customerConfirmed && (
+                      <CheckCheck
+                        aria-hidden
+                        className="absolute top-1 right-1 size-3.5"
+                        strokeWidth={2.5}
+                      />
+                    )}
                     {duration * PX < 44 ? (
                       // Bloco curto (até ~40 min): uma linha só, para não cortar o texto.
                       <span className="truncate text-caption">
@@ -477,6 +486,12 @@ function BookingDetails({
             <StatusBadge status={b.status} />
             {b.fromMarketplace && (
               <span className="text-caption text-muted">veio do marketplace</span>
+            )}
+            {b.customerConfirmed && (
+              <span className="flex items-center gap-1 text-caption font-semibold text-status-confirmed-fg">
+                <CheckCheck aria-hidden className="size-4" strokeWidth={2} />
+                Presença confirmada pelo cliente
+              </span>
             )}
           </div>
         </div>

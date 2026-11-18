@@ -152,6 +152,7 @@ async function Agenda({
             endMin: b.endMin,
             priceLabel: brl(b.priceCents),
             fromMarketplace: b.source === "MARKETPLACE",
+            customerConfirmed: b.customerConfirmed,
           }))}
           blocks={agenda.blocks.map((x) => ({
             ...x,

@@ -29,6 +29,8 @@ const ERRORS: Record<string, string> = {
   RECURRING_CONFLICT: "Algumas semanas desse horário já estão ocupadas. Tente outro horário.",
   RECURRING_NOT_ALLOWED: "Este serviço não aceita mensalista.",
   SUSPENDED: "Este estabelecimento não está aceitando agendamentos no momento.",
+  PHONE: "Telefone inválido. Use o formato (11) 99999-0000.",
+  CONSENT: "Para ativar os lembretes, marque a caixa de aceite.",
 };
 
 export function ErrorBanner({ code }: { code: string | null }) {

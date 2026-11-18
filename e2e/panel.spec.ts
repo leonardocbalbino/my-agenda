@@ -4,21 +4,13 @@
  */
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { newEmail, signIn, tenant } from "./helpers";
+import { newEmail, nextWeekday, signIn, tenant } from "./helpers";
 
 test.use({ viewport: { width: 1280, height: 1100 } });
 test.describe.configure({ mode: "serial" });
 
 const PX = 1.1; // px por minuto na grade
 let page: Page;
-
-/** Próxima data (YYYY-MM-DD, fuso de São Paulo) que cai no dia da semana pedido. */
-function nextWeekday(target: number): string {
-  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-  const d = new Date(today);
-  d.setDate(d.getDate() + ((target - d.getDay() + 7) % 7 || 7));
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 const column = (name: string) => page.getByRole("region", { name: `Agenda de ${name}` });
 const block = (name: RegExp) => page.locator("[data-booking]").filter({ hasText: name });
@@ -95,9 +87,9 @@ test("novo agendamento de balcão e bloqueio de horário", async () => {
 
   await page.getByRole("button", { name: "Novo agendamento" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Cliente").fill("Seu Zé");
+  await dialog.getByLabel("Cliente", { exact: true }).fill("Seu Zé");
   await dialog.getByLabel("Serviço").selectOption({ label: "Barba" });
-  await dialog.getByLabel("Com").selectOption({ label: "Rafa" });
+  await dialog.getByLabel("Com", { exact: true }).selectOption({ label: "Rafa" });
   await dialog.getByLabel("Horário").fill("10:00");
   await dialog.getByRole("button", { name: "Agendar" }).click();
   await expect(

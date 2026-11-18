@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { SubmitButton } from "@/components/booking/submit-button";
 import { Button } from "@/components/ui";
-import { Field, FormMessage, echo, inputClass } from "@/components/ui/field";
+import { Checkbox, Field, FormMessage, echo, echoChecked, inputClass } from "@/components/ui/field";
 import { cn } from "@/lib/cn";
 import type { ActionResult } from "@/app/t/[slug]/painel/actions";
 
@@ -124,6 +124,12 @@ function BookingForm({
           />
         )}
       </Field>
+      <Checkbox
+        name="whatsapp"
+        label="Cliente aceita lembretes no WhatsApp"
+        hint="Pergunte antes de marcar. Ele pode parar respondendo PARAR."
+        defaultChecked={echoChecked(state, "whatsapp")}
+      />
       <Field label="Serviço" error={issues.servico}>
         {(p) => (
           <select

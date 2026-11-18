@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Clock } from "lucide-react";
+import { CheckCircle2, Clock, MessageCircle } from "lucide-react";
 import { SubmitButton } from "@/components/booking/submit-button";
 import { StatusBadge, buttonVariants } from "@/components/ui";
 import { getDb } from "@/db/client";
 import { clock, longPeriod } from "@/lib/format";
 import { cents, formatBRL } from "@/lib/money";
+import { formatPhone } from "@/lib/phone";
 import { rootUrl } from "@/lib/urls";
 import { FREE_CANCEL_HOURS, getCustomerBooking } from "@/modules/booking";
 import { getTenant, requireUser } from "@/modules/identity/guards";
-import { cancelBooking } from "../../actions";
+import { getReminderPrefs } from "@/modules/identity/profile";
+import { cancelBooking, disableReminders, enableReminders } from "../../actions";
 import { ErrorBanner, param } from "../../_components/booking-flow";
 
 export const metadata: Metadata = { title: "Seu agendamento", robots: { index: false } };
@@ -35,6 +37,7 @@ export default async function BookingPage({
   const user = await requireUser();
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const b = await getCustomerBooking(getDb(), tenant.tenantId, user.id, id);
+  const prefs = await getReminderPrefs(getDb(), user.id);
   if (!b) notFound();
 
   const canCancel = b.canCancel;
@@ -78,6 +81,71 @@ export default async function BookingPage({
           </div>
         ))}
       </dl>
+
+      {(b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT") && (
+        <section
+          aria-labelledby="lembretes"
+          className="flex flex-col gap-3 rounded-card border border-border bg-surface p-5"
+        >
+          <h2 id="lembretes" className="flex items-center gap-2 text-body-lg font-semibold">
+            <MessageCircle aria-hidden className="size-5" strokeWidth={2} />
+            Lembretes no WhatsApp
+          </h2>
+          {prefs.whatsappOptIn && prefs.phone ? (
+            <>
+              <p className="flex items-start gap-2 text-body">
+                <CheckCircle2
+                  aria-hidden
+                  className="mt-0.5 size-5 shrink-0 text-brand"
+                  strokeWidth={2}
+                />
+                <span>
+                  Ativos para <strong className="tabular">{formatPhone(prefs.phone)}</strong>: você
+                  recebe a confirmação e lembretes 24h e 2h antes.
+                </span>
+              </p>
+              <form action={disableReminders}>
+                <SubmitButton variant="ghost" pendingText="Desativando…">
+                  Parar lembretes
+                </SubmitButton>
+              </form>
+            </>
+          ) : (
+            <form action={enableReminders} className="flex flex-col gap-3">
+              <p className="text-body text-muted">
+                Sem lembrete, a gente avisa por e-mail. No WhatsApp você ainda confirma presença com
+                um toque.
+              </p>
+              <label className="flex flex-col gap-1.5 text-body font-medium">
+                Celular com DDD
+                <input
+                  name="telefone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel-national"
+                  placeholder="(11) 99999-0000"
+                  defaultValue={prefs.phone ? formatPhone(prefs.phone) : undefined}
+                  className="h-11 rounded-control border border-border-strong bg-surface px-3 text-body"
+                />
+              </label>
+              <label className="flex min-h-11 items-start gap-3 text-body">
+                <input
+                  type="checkbox"
+                  name="aceite"
+                  className="mt-0.5 size-5 shrink-0 accent-brand"
+                />
+                <span>
+                  Aceito receber confirmação e lembretes dos meus agendamentos por WhatsApp. Posso
+                  parar a qualquer momento respondendo PARAR.
+                </span>
+              </label>
+              <SubmitButton variant="brand" pendingText="Ativando…" className="self-start">
+                Ativar lembretes
+              </SubmitButton>
+            </form>
+          )}
+        </section>
+      )}
 
       {canCancel && (
         <form action={cancelBooking} className="flex flex-col gap-2">

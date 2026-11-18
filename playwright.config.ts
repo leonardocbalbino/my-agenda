@@ -1,5 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
-import { E2E_PORT, E2E_ROOT, OUTBOX } from "./e2e/env";
+import { E2E_PORT, E2E_ROOT, OUTBOX, WA_APP_SECRET, WA_OUTBOX, WA_VERIFY_TOKEN } from "./e2e/env";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -13,7 +13,7 @@ export default defineConfig({
     {
       name: "mobile",
       use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } },
-      testIgnore: /auth-tenancy|booking|panel/,
+      testIgnore: /auth-tenancy|booking|panel|reminders/,
     },
   ],
   webServer: {
@@ -26,6 +26,10 @@ export default defineConfig({
       ENABLE_DESIGN_PAGE: "1",
       NEXT_PUBLIC_ROOT_DOMAIN: E2E_ROOT,
       DEV_EMAIL_OUTBOX: OUTBOX,
+      WHATSAPP_PROVIDER: "console",
+      DEV_WHATSAPP_OUTBOX: WA_OUTBOX,
+      WHATSAPP_APP_SECRET: WA_APP_SECRET,
+      WHATSAPP_VERIFY_TOKEN: WA_VERIFY_TOKEN,
     },
   },
 });

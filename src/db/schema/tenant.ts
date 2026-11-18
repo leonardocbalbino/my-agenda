@@ -23,6 +23,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { geographyPoint, tstzrange } from "../custom-types";
 import {
+  notificationChannelEnum,
+  notificationKindEnum,
+  notificationStatusEnum,
   bookingSourceEnum,
   bookingStatusEnum,
   exceptionKindEnum,
@@ -291,6 +294,8 @@ export const customerProfiles = pgTable(
     email: text("email"),
     notes: text("notes"),
     noShowCount: integer("no_show_count").default(0).notNull(),
+    /** Consentimento para lembretes por WhatsApp no telefone acima. */
+    whatsappOptInAt: timestamp("whatsapp_opt_in_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [
@@ -397,6 +402,10 @@ export const bookings = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     cancelReason: text("cancel_reason"),
+    /** Cliente confirmou presença (botão do lembrete no WhatsApp). */
+    customerConfirmedAt: timestamp("customer_confirmed_at", { withTimezone: true }),
+    /** Quando o horário atual foi definido (criação ou remarcação): base das janelas de lembrete. */
+    periodChangedAt: timestamp("period_changed_at", { withTimezone: true }).defaultNow().notNull(),
     createdByUserId: uuid("created_by_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
@@ -498,4 +507,36 @@ export const subscriptions = pgTable(
     ...timestamps,
   },
   (t) => [index("subscriptions_tenant_idx").on(t.tenantId)],
+);
+
+/**
+ * Registro de cada mensagem automática (confirmação e lembretes). A chave única
+ * (reserva, tipo, horário) impede envio em dobro, inclusive com dois workers.
+ */
+export const notificationLog = pgTable(
+  "notification_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tenantId: tenantId(),
+    bookingId: uuid("booking_id").notNull(),
+    kind: notificationKindEnum("kind").notNull(),
+    /** Início da reserva na hora do envio: remarcou, ganha lembretes novos. */
+    bookingStart: timestamp("booking_start", { withTimezone: true }).notNull(),
+    channel: notificationChannelEnum("channel").default("NONE").notNull(),
+    status: notificationStatusEnum("status").default("SENDING").notNull(),
+    /** Destinatário mascarado (minimização de dados). */
+    recipient: text("recipient"),
+    providerMessageId: text("provider_message_id"),
+    error: text("error"),
+    ...timestamps,
+  },
+  (t) => [
+    unique("notification_log_once").on(t.bookingId, t.kind, t.bookingStart),
+    foreignKey({
+      name: "notification_log_booking_fk",
+      columns: [t.tenantId, t.bookingId],
+      foreignColumns: [bookings.tenantId, bookings.id],
+    }).onDelete("cascade"),
+    index("notification_log_tenant_idx").on(t.tenantId, t.createdAt),
+  ],
 );

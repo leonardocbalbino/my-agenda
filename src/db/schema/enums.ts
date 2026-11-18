@@ -28,3 +28,20 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "PAST_DUE",
   "CANCELLED",
 ]);
+
+export const notificationKindEnum = pgEnum("notification_kind", [
+  "CONFIRMATION",
+  "REMINDER_24H",
+  "REMINDER_2H",
+]);
+export const notificationChannelEnum = pgEnum("notification_channel", [
+  "WHATSAPP",
+  "EMAIL",
+  "NONE",
+]);
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "SENDING",
+  "SENT",
+  "FAILED",
+  "SKIPPED",
+]);

@@ -39,6 +39,8 @@ export interface AgendaBooking {
   endMin: number;
   priceCents: number;
   prepaidCents: number;
+  /** Cliente confirmou presença pelo WhatsApp. */
+  customerConfirmed: boolean;
 }
 
 export interface AgendaBlock {
@@ -154,6 +156,7 @@ export async function getDayAgenda(
         period: bookings.period,
         priceCents: bookings.priceCents,
         prepaidCents: bookings.prepaidCents,
+        customerConfirmedAt: bookings.customerConfirmedAt,
       })
       .from(bookings)
       .innerJoin(customerProfiles, eq(customerProfiles.id, bookings.customerProfileId))
@@ -216,6 +219,7 @@ export async function getDayAgenda(
       endMin: minutesFrom(midnight, b.period.end),
       priceCents: b.priceCents,
       prepaidCents: b.prepaidCents,
+      customerConfirmed: b.customerConfirmedAt !== null,
     }));
 
     const blocks: AgendaBlock[] = exc

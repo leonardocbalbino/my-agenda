@@ -153,7 +153,11 @@ async function newBookingActionImpl(form: FormData): Promise<ActionResult> {
       offeringId,
       resourceId,
       start: start!,
-      customer: { name, phone: str(form, "telefone") || null },
+      customer: {
+        name,
+        phone: str(form, "telefone") || null,
+        whatsappOptIn: form.get("whatsapp") === "on",
+      },
     });
   } catch (e) {
     return fail(e);

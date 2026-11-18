@@ -32,3 +32,11 @@ export async function signIn(page: Page, email: string, from: string) {
   await page.goto(from);
   await completeSignIn(page, email);
 }
+
+/** Próxima data (YYYY-MM-DD, fuso de São Paulo) que cai no dia da semana pedido (0 = domingo). */
+export function nextWeekday(target: number): string {
+  const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const d = new Date(today);
+  d.setDate(d.getDate() + ((target - d.getDay() + 7) % 7 || 7));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}

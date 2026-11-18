@@ -1,2 +1,6 @@
-/** Módulo notifications: Providers de WhatsApp/e-mail, lembretes 24h e 2h. API pública do módulo: importe só daqui. */
-export {};
+/** Módulo notifications: WhatsApp/e-mail, confirmação e lembretes. API pública. */
+export * from "./email";
+export * from "./messages";
+export * from "./whatsapp";
+export * from "./dispatcher";
+export * from "./inbound";

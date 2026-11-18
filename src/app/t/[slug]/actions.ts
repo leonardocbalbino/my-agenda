@@ -14,6 +14,7 @@ import {
 } from "@/modules/booking";
 import { getPublicCatalog } from "@/modules/catalog/public";
 import { getSessionUser, getTenant, REQUEST_URL_HEADER } from "@/modules/identity/guards";
+import { disableWhatsAppReminders, enableWhatsAppReminders } from "@/modules/identity/profile";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -111,4 +112,27 @@ export async function cancelBooking(form: FormData) {
     throw e;
   }
   redirect(`/agendamento/${bookingId}`);
+}
+
+/** Cliente ativa lembretes no WhatsApp (telefone + aceite explícito). */
+export async function enableReminders(form: FormData) {
+  const { url, back } = await requestContext();
+  const user = await getSessionUser();
+  if (!user) redirect(signInUrl(url));
+  if (form.get("aceite") !== "on") redirect(back("CONSENT"));
+  const ok = await enableWhatsAppReminders(getDb(), user.id, field(form, "telefone") ?? "");
+  if (!ok) redirect(back("PHONE"));
+  const target = new URL(url);
+  target.searchParams.delete("erro");
+  redirect(`${target.pathname}${target.search}`);
+}
+
+export async function disableReminders() {
+  const { url } = await requestContext();
+  const user = await getSessionUser();
+  if (!user) redirect(signInUrl(url));
+  await disableWhatsAppReminders(getDb(), user.id);
+  const target = new URL(url);
+  target.searchParams.delete("erro");
+  redirect(`${target.pathname}${target.search}`);
 }

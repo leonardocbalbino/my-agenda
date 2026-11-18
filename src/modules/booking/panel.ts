@@ -14,6 +14,7 @@ import {
   offeringResources,
   resources,
 } from "@/db/schema";
+import { normalizeBRPhone } from "@/lib/phone";
 import { addDays, localParts, parseISODate } from "@/lib/time";
 import type { Membership } from "@/modules/identity/membership";
 import { canAccessResource } from "@/modules/identity/permissions";
@@ -167,6 +168,9 @@ export async function rescheduleBooking(
           .set({
             resourceId: input.resourceId,
             period: { start: input.start, end },
+            // Novo horário: novas janelas de confirmação/lembrete; presença precisa ser reconfirmada.
+            periodChangedAt: new Date(),
+            customerConfirmedAt: null,
             updatedAt: new Date(),
           })
           .where(eq(bookings.id, b.id))
@@ -249,7 +253,8 @@ export interface PanelBookingInput {
   offeringId: string;
   resourceId: string;
   start: Date;
-  customer: { profileId: string } | { name: string; phone?: string | null };
+  customer:
+    { profileId: string } | { name: string; phone?: string | null; whatsappOptIn?: boolean };
 }
 
 /** "Novo agendamento" no painel: cliente da casa ou de balcão (sem conta). */
@@ -261,6 +266,11 @@ export async function createPanelBooking(
   now = new Date(),
 ) {
   assertCanManage(actor, input.resourceId);
+  let phone: string | null = null;
+  if ("name" in input.customer && input.customer.phone?.trim()) {
+    phone = normalizeBRPhone(input.customer.phone);
+    if (!phone) throw new PanelError("INVALID_INPUT", "Telefone inválido. Ex.: (11) 99999-0000");
+  }
   const [loc] = await withTenant(db, tenantId, (tx) =>
     tx
       .select({ timezone: locations.timezone })
@@ -301,7 +311,9 @@ export async function createPanelBooking(
             .values({
               tenantId,
               name: input.customer.name.trim(),
-              phone: input.customer.phone?.trim() || null,
+              phone,
+              // Só com telefone e aceite registrado pelo atendente (LGPD).
+              whatsappOptInAt: phone && input.customer.whatsappOptIn ? new Date() : null,
             })
             .returning({ id: customerProfiles.id });
           profileId = p.id;
