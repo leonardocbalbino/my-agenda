@@ -13,6 +13,12 @@
 export const MEMBERSHIP_ROLES = ["OWNER", "MANAGER", "STAFF"] as const;
 export type MembershipRole = (typeof MEMBERSHIP_ROLES)[number];
 
+export const ROLE_LABEL: Record<MembershipRole, string> = {
+  OWNER: "Dono",
+  MANAGER: "Gerente",
+  STAFF: "Equipe",
+};
+
 export const PERMISSIONS = [
   "agenda:view_all",
   "agenda:manage_all",

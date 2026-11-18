@@ -113,3 +113,17 @@ Em dev, o domínio raiz é `marcai.localhost:3000` (`*.localhost` resolve sozinh
 - Rode o worker junto com o app: `pnpm worker` (precisa de Redis: `pnpm db:up`).
 - Cliente cancela até 2h antes (pendente pode desistir a qualquer momento). "Meus agendamentos"
   fica na raiz (`/meus-agendamentos`).
+
+## Painel do estabelecimento
+
+`{slug}.<raiz>/painel` (login com conta que tenha membership no tenant):
+
+- **Agenda:** colunas por profissional/espaço, linhas de 30 min, blocos por status, bloqueios
+  em preto. Arrastar e soltar remarca (encaixe de 15 min); clicar abre detalhes com concluir,
+  não compareceu, cancelar, confirmar e remarcar por teclado. "Novo agendamento" cria
+  agendamento de balcão ou bloqueio de horário. Quatro indicadores do dia.
+- **Serviços, Equipe (agendas, jornada semanal, pessoas) e Clientes.** Financeiro, Minha página e
+  Configurações aparecem como "em breve".
+- Regras em `src/modules/booking/panel.ts` e `src/modules/catalog/admin.ts`: toda ação
+  revalida o papel. STAFF só mexe na própria coluna; só o dono adiciona/remove dono; o negócio
+  nunca fica sem dono.

@@ -13,7 +13,7 @@ export default defineConfig({
     {
       name: "mobile",
       use: { ...devices["Desktop Chrome"], viewport: { width: 390, height: 844 } },
-      testIgnore: /auth-tenancy|booking/,
+      testIgnore: /auth-tenancy|booking|panel/,
     },
   ],
   webServer: {

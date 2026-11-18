@@ -38,9 +38,12 @@ test.describe("login e papéis", () => {
   test("dono entra pelo painel do tenant e volta para ele já logado", async ({ page }) => {
     await signIn(page, "rafa@navalha.dev", tenant("navalha", "/painel"));
     await expect(page).toHaveURL(tenant("navalha", "/painel"));
-    await expect(page.getByRole("heading", { name: "Olá, Rafa" })).toBeVisible();
+    await expect(page.getByText("Agenda da equipe")).toBeVisible();
     await expect(page.getByText("Dono", { exact: true })).toBeVisible();
-    await expect(page.getByText("billing:manage")).toBeVisible();
+    // Itens só do dono aparecem no menu.
+    const nav = page.getByRole("navigation", { name: "Painel" });
+    await expect(nav.getByRole("link", { name: "Configurações" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Financeiro" })).toBeVisible();
 
     // Mesma sessão vale em outro subdomínio, mas sem membership lá: sem acesso.
     await page.goto(tenant("arenabeirario", "/painel"));
@@ -63,8 +66,17 @@ test.describe("login e papéis", () => {
   test("STAFF só tem permissões da própria agenda", async ({ page }) => {
     await signIn(page, "diego@navalha.dev", tenant("navalha", "/painel"));
     await expect(page.getByText("Equipe", { exact: true })).toBeVisible();
-    await expect(page.getByText("agenda:manage_own")).toBeVisible();
-    await expect(page.getByText("agenda:view_all")).toHaveCount(0);
+    await expect(page.getByText("Sua agenda")).toBeVisible();
+    // Só a própria coluna e só o item Agenda no menu.
+    await expect(page.getByRole("region", { name: /^Agenda de / })).toHaveCount(1);
+    await expect(page.getByRole("region", { name: "Agenda de Diego" })).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "Painel" });
+    await expect(nav.getByRole("link")).toHaveCount(1);
+    // E as telas de gestão recusam pela URL também.
+    await page.goto(tenant("navalha", "/painel/servicos"));
+    await expect(
+      page.getByRole("heading", { name: "Você não tem acesso a esta área" }),
+    ).toBeVisible();
   });
 
   test("super admin entra no backoffice", async ({ page }) => {

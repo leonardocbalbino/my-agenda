@@ -35,3 +35,21 @@ export function formatBRL(value: Cents, options: FormatBRLOptions = {}): string 
   }
   return negative ? `-${out}` : out;
 }
+
+/**
+ * Converte o que a pessoa digitou ("45", "45,5", "R$ 1.385,50") em centavos,
+ * só com operações de texto e inteiros. Retorna null se não for um valor válido.
+ */
+export function parseBRL(input: string): Cents | null {
+  const s = input.replace(/R\$/i, "").replace(/\s/g, "");
+  if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(s)) return null;
+  const [whole, frac = ""] = s.replace(/\./g, "").split(",");
+  const value = Number(whole) * 100 + Number(frac.padEnd(2, "0"));
+  return Number.isSafeInteger(value) ? cents(value) : null;
+}
+
+/** Centavos para o campo de formulário: 4550 -> "45,50". */
+export function centsToInput(value: number): string {
+  const rest = Math.abs(value) % 100;
+  return `${(Math.abs(value) - rest) / 100},${String(rest).padStart(2, "0")}`;
+}

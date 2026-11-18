@@ -148,6 +148,35 @@ function ruleApplies(rule: WeeklyRule, day: LocalDate): boolean {
   return true;
 }
 
+/**
+ * Jornada efetiva (regras semanais + aberturas - fechamentos) de um recurso
+ * nos dias informados, em intervalos UTC [início, fim) em ms, já unidos.
+ */
+export function workingIntervals(
+  r: EngineResource,
+  days: LocalDate[],
+  exceptions: AvailabilityExceptionInput[],
+): [number, number][] {
+  const base: Iv[] = [];
+  for (const day of days) {
+    for (const rule of r.rules) {
+      if (!ruleApplies(rule, day)) continue;
+      base.push([
+        zonedTime(day, rule.start, r.timezone).getTime(),
+        zonedTime(day, rule.end, r.timezone).getTime(),
+      ]);
+    }
+  }
+  const mine = exceptions.filter((x) => x.resourceId === null || x.resourceId === r.id);
+  const opened = mine
+    .filter((x) => x.kind === "OPEN")
+    .map((x): Iv => [x.start.getTime(), x.end.getTime()]);
+  const closed = mine
+    .filter((x) => x.kind === "CLOSED")
+    .map((x): Iv => [x.start.getTime(), x.end.getTime()]);
+  return subtractIntervals([...base, ...opened], closed);
+}
+
 // --- motor -------------------------------------------------------------------------
 
 interface ResourceState {
@@ -169,24 +198,7 @@ export function computeSlots(input: EngineInput): Slot[] {
   const days = [addDays(date, -1), date, addDays(date, 1)];
 
   const states: ResourceState[] = input.resources.map((r) => {
-    const base: Iv[] = [];
-    for (const day of days) {
-      for (const rule of r.rules) {
-        if (!ruleApplies(rule, day)) continue;
-        base.push([
-          zonedTime(day, rule.start, r.timezone).getTime(),
-          zonedTime(day, rule.end, r.timezone).getTime(),
-        ]);
-      }
-    }
-    const mine = exceptions.filter((x) => x.resourceId === null || x.resourceId === r.id);
-    const opened = mine
-      .filter((x) => x.kind === "OPEN")
-      .map((x): Iv => [x.start.getTime(), x.end.getTime()]);
-    const closed = mine
-      .filter((x) => x.kind === "CLOSED")
-      .map((x): Iv => [x.start.getTime(), x.end.getTime()]);
-    const working = subtractIntervals([...base, ...opened], closed);
+    const working = workingIntervals(r, days, exceptions);
 
     const myBusy = busy.filter((b) => b.resourceId === r.id);
     const free = subtractIntervals(
