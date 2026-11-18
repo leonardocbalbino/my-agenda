@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens do Marcaí (identidade v0.1).
+ *
+ * As variáveis em :root são a fonte da verdade. O bloco @theme inline as expõe
+ * como utilities do Tailwind (bg-brand, text-action-ink, rounded-card...).
+ * É "inline" de propósito: a utility referencia var(--brand) diretamente, então
+ * sobrescrever --brand num ancestral (página do tenant) muda tudo abaixo dele.
+ *
+ * Regra: só --brand, --brand-soft, --brand-ink e --on-brand podem ser
+ * sobrescritos por tenant (ver src/lib/brand.ts). --action e status são fixos.
+ */
+:root {
+  /* Marca (sobrescrita por tenant) */
+  --brand: #0f766e;
+  --brand-soft: #ccede7;
+  --brand-ink: #115e59;
+  --on-brand: #ffffff;
+
+  /* Ação: APENAS o CTA principal (Agendar / Confirmar / Pagar) */
+  --action: #c2410c;
+  --action-soft: #ffedd5;
+  --action-ink: #9a3412;
+  --on-action: #ffffff;
+
+  /* Neutros */
+  --ink: #121417;
+  --paper: #fafaf7;
+  --surface: #ffffff;
+  --border: #e4e2dc;
+  --border-strong: #d6d3cc;
+  --muted: #5b616b;
+  --disabled-bg: #f0efeb;
+
+  /* Status da reserva (fundo / texto) */
+  --status-confirmed-bg: #ccede7;
+  --status-confirmed-fg: #115e59;
+  --status-pending-bg: #fef3c7;
+  --status-pending-fg: #92400e;
+  --status-completed-bg: #e0e7ff;
+  --status-completed-fg: #3730a3;
+  --status-cancelled-bg: #fee2e2;
+  --status-cancelled-fg: #991b1b;
+  --status-no-show-bg: #e7e5e0;
+  --status-no-show-fg: #3f444c;
+}
+
+@theme inline {
+  /* Cores */
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+  --color-action: var(--action);
+  --color-action-soft: var(--action-soft);
+  --color-action-ink: var(--action-ink);
+  --color-on-action: var(--on-action);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-disabled-bg: var(--disabled-bg);
+  --color-status-confirmed: var(--status-confirmed-bg);
+  --color-status-confirmed-fg: var(--status-confirmed-fg);
+  --color-status-pending: var(--status-pending-bg);
+  --color-status-pending-fg: var(--status-pending-fg);
+  --color-status-completed: var(--status-completed-bg);
+  --color-status-completed-fg: var(--status-completed-fg);
+  --color-status-cancelled: var(--status-cancelled-bg);
+  --color-status-cancelled-fg: var(--status-cancelled-fg);
+  --color-status-no-show: var(--status-no-show-bg);
+  --color-status-no-show-fg: var(--status-no-show-fg);
+
+  /* Cor fixa do logo da plataforma: não muda na página do tenant */
+  --color-marcai: #0f766e;
+
+  /* Fontes (carregadas por next/font em layout.tsx) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, sans-serif;
+
+  /* Escala tipográfica: títulos 48/32/24, corpo 17/15/13 */
+  --text-display: 3rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.025em;
+  --text-title: 2rem;
+  --text-title--line-height: 1.15;
+  --text-title--letter-spacing: -0.02em;
+  --text-heading: 1.5rem;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.01em;
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.5;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.45;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.35;
+
+  /* Raios: 16 cards, 12 botões/inputs, 999 chips */
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+
+  /* Sombra única, só para elementos flutuantes (rodapé fixo, sheet, modal) */
+  --shadow-float: 0 -1px 0 0 rgb(18 20 23 / 0.06), 0 8px 32px -8px rgb(18 20 23 / 0.18);
+}
+
+/* Espaçamento: base 4px = padrão do Tailwind (--spacing: 0.25rem). */
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+}
+
+/* Números tabulares para horários e preços, para as colunas alinharem */
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
