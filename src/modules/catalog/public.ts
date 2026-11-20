@@ -1,6 +1,7 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import {
+  availabilityExceptions,
   availabilityRules,
   locations,
   offeringResources,
@@ -8,7 +9,7 @@ import {
   pricingRules,
   resources,
 } from "@/db/schema";
-import { addDays, todayIn, toISODate, weekdayOf, type LocalDate } from "@/lib/time";
+import { addDays, todayIn, toISODate, weekdayOf, zonedTime, type LocalDate } from "@/lib/time";
 import { withTenant } from "@/modules/tenancy/context";
 
 /** Dados públicos de um tenant para a página de agendamento. */
@@ -23,6 +24,8 @@ export interface PublicCatalog {
     validFrom: string | null;
     validUntil: string | null;
   }[];
+  /** Fechamentos da unidade inteira (feriado, reforma) nas próximas semanas. */
+  closures: { start: Date; end: Date }[];
 }
 
 export interface PublicOffering {
@@ -78,10 +81,22 @@ export async function getPublicCatalog(db: Db, tenantId: string): Promise<Public
       })
       .from(availabilityRules);
     const prices = await tx.select().from(pricingRules).orderBy(asc(pricingRules.startTime));
+    const closed = await tx
+      .select({ period: availabilityExceptions.period })
+      .from(availabilityExceptions)
+      .where(
+        and(
+          eq(availabilityExceptions.kind, "CLOSED"),
+          isNull(availabilityExceptions.resourceId),
+          sql`upper(${availabilityExceptions.period}) > now()`,
+          sql`lower(${availabilityExceptions.period}) < now() + interval '35 days'`,
+        ),
+      );
 
     const activeIds = new Set(res.map((r) => r.id));
     return {
       location: loc ?? null,
+      closures: closed.map((c) => c.period),
       resources: res,
       rules: rules.map((r) => ({ ...r, end: r.end.slice(0, 5) })),
       offerings: offs.map((o) => {
@@ -106,6 +121,13 @@ export async function getPublicCatalog(db: Db, tenantId: string): Promise<Public
   });
 }
 
+/** O dia inteiro (00:00–24:00 local) está dentro de um fechamento da unidade? */
+function closedAllDay(catalog: PublicCatalog, day: LocalDate, tz: string) {
+  const from = zonedTime(day, "00:00", tz).getTime();
+  const to = zonedTime(day, "24:00", tz).getTime();
+  return catalog.closures.some((c) => c.start.getTime() <= from && c.end.getTime() >= to);
+}
+
 function worksOn(catalog: PublicCatalog, resourceIds: string[], day: LocalDate) {
   const iso = toISODate(day);
   const wd = weekdayOf(day);
@@ -125,7 +147,7 @@ export function openDays(catalog: PublicCatalog, resourceIds: string[], n = 5, n
   const days: LocalDate[] = [];
   for (let i = 0; i < 28 && days.length < n; i++) {
     const d = addDays(today, i);
-    if (worksOn(catalog, resourceIds, d).length) days.push(d);
+    if (worksOn(catalog, resourceIds, d).length && !closedAllDay(catalog, d, tz)) days.push(d);
   }
   return { today, days };
 }

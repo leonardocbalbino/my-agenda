@@ -144,3 +144,17 @@ Em dev, o domínio raiz é `marcai.localhost:3000` (`*.localhost` resolve sozinh
 - **Webhook:** `https://<raiz>/api/webhooks/whatsapp` (assinatura `X-Hub-Signature-256` obrigatória,
   idempotente por mensagem). "Confirmo presença" marca a reserva (o painel mostra); "Preciso
   remarcar" responde com o link da reserva.
+
+## Marketplace
+
+`<raiz>/explorar`: busca por nicho, texto ("O quê": serviço, nome ou bairro, sem acento), lugar
+(bairro/cidade ou "Usar minha localização", com distância via PostGIS) e "Quando". Lê só a view
+`public_listings` (tenants listados e ativos, colunas públicas).
+
+- Cada card mostra até 3 **horários livres reais** do serviço vitrine (o mais barato), calculados
+  pelo motor de disponibilidade; sem horário no dia, mostra o próximo dia aberto. Cache de 1 min.
+- Tocar no horário abre a página do estabelecimento com serviço, profissional/quadra, dia e hora
+  escolhidos.
+- **Origem "marketplace"** (comissão maior): o link leva `?ref=` assinado (HMAC, vale para aquele
+  tenant por 6h), conferido de novo na confirmação. Sem token válido, conta como página do
+  estabelecimento.

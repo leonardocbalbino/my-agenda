@@ -172,7 +172,8 @@ export interface FooterProps {
   day: string;
   slot: Slot | null;
   recurring: boolean;
-  origin: string | null;
+  /** Token assinado do marketplace (?ref=), verificado na confirmação. */
+  refToken: string | null;
   /** Arena: o nome da quadra já basta ("Society 1 · Hoje 20:00"). */
   hideOfferingName?: boolean;
 }
@@ -221,7 +222,7 @@ export function BookingFooter(p: FooterProps) {
         <input type="hidden" name="dia" value={p.day} />
         {p.slot && <input type="hidden" name="hora" value={p.slot.localTime} />}
         {p.recurring && <input type="hidden" name="mensal" value="1" />}
-        {p.origin && <input type="hidden" name="origem" value={p.origin} />}
+        {p.refToken && <input type="hidden" name="ref" value={p.refToken} />}
         <SubmitButton
           variant="action"
           size="lg"

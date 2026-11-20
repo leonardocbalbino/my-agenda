@@ -1,2 +1,3 @@
-/** Módulo marketplace: View public_listings, busca geográfica, próximos horários livres. API pública do módulo: importe só daqui. */
-export {};
+/** Módulo marketplace: vitrine pública, busca geográfica, próximos horários livres. API pública. */
+export * from "./attribution";
+export * from "./search";

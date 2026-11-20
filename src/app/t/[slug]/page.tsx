@@ -191,7 +191,7 @@ async function ServiceFlow({
         day={dayIso}
         slot={slot}
         recurring={false}
-        origin={param(sp, "origem")}
+        refToken={param(sp, "ref")}
       />
     </>
   );
@@ -299,7 +299,7 @@ async function ArenaFlow({
         slot={slot}
         recurring={recurring}
         hideOfferingName
-        origin={param(sp, "origem")}
+        refToken={param(sp, "ref")}
       />
     </>
   );

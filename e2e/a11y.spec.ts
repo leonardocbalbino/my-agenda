@@ -9,6 +9,7 @@ const PAGES = [
   "/sem-acesso",
   `http://navalha.${E2E_ROOT}/`,
   `http://arenabeirario.${E2E_ROOT}/`,
+  "/explorar",
 ];
 
 for (const path of PAGES) {

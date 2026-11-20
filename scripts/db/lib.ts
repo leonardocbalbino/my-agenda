@@ -101,6 +101,8 @@ export async function setupDatabase(opts: SetupOptions): Promise<void> {
     // postgis não é "trusted": só superusuário cria.
     await adminOnDb.query("CREATE EXTENSION IF NOT EXISTS postgis");
     await adminOnDb.query("CREATE EXTENSION IF NOT EXISTS btree_gist");
+    // Busca do marketplace sem acento ("salao" acha "Salão").
+    await adminOnDb.query("CREATE EXTENSION IF NOT EXISTS unaccent");
     await adminOnDb.query(`REVOKE ALL ON DATABASE ${ident(database)} FROM PUBLIC`);
     await adminOnDb.query(
       `GRANT CONNECT ON DATABASE ${ident(database)} TO ${ident(ROLES.app)}, ${ident(ROLES.migrator)}`,

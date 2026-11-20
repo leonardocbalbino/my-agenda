@@ -13,6 +13,7 @@ import {
   scheduleExpiration,
 } from "@/modules/booking";
 import { getPublicCatalog } from "@/modules/catalog/public";
+import { verifyRef } from "@/modules/marketplace/attribution";
 import { getSessionUser, getTenant, REQUEST_URL_HEADER } from "@/modules/identity/guards";
 import { disableWhatsAppReminders, enableWhatsAppReminders } from "@/modules/identity/profile";
 
@@ -52,7 +53,11 @@ export async function confirmBooking(form: FormData) {
   const day = parseISODate(field(form, "dia") ?? "");
   const time = field(form, "hora");
   const recurring = field(form, "mensal") === "1";
-  const source = field(form, "origem") === "marketplace" ? "MARKETPLACE" : "TENANT_PAGE";
+  // Origem marketplace só com token assinado válido PARA ESTE tenant (define a comissão).
+  const ref = form.get("ref");
+  const source = verifyRef(typeof ref === "string" ? ref : null, tenant.tenantId)
+    ? "MARKETPLACE"
+    : "TENANT_PAGE";
   if (
     !offeringId ||
     !UUID.test(offeringId) ||

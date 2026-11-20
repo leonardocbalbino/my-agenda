@@ -10,15 +10,17 @@ export default function Home() {
       <h1 className="font-display text-title font-bold sm:text-display">
         Corte, quadra, unha. Ache o horário livre e marque agora.
       </h1>
-      <p className="text-body-lg text-muted">Em construção.</p>
-      {process.env.NODE_ENV !== "production" && (
-        <Link
-          href="/design"
-          className={buttonVariants({ variant: "dark", className: "self-start" })}
-        >
-          Ver design system
+      <p className="text-body-lg text-muted">A página para donos de negócio está em construção.</p>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/explorar" className={buttonVariants({ variant: "action", size: "lg" })}>
+          Ver horários livres
         </Link>
-      )}
+        {process.env.NODE_ENV !== "production" && (
+          <Link href="/design" className={buttonVariants({ variant: "outline", size: "lg" })}>
+            Ver design system
+          </Link>
+        )}
+      </div>
     </main>
   );
 }
